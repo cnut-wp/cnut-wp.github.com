@@ -9,8 +9,7 @@
   <meta name="author" content="Peng Wang">
 
   
-  <meta name="description" content="A late come, but it is a start. And I hope it have a long life.
-">
+  <meta name="description" content="这学期我担了一门课的助教。课上需要为学生建立一个 git 仓库。该仓库需要所有学生都有 pull 权限，但是又要赋予几个 TA push 权限。这个要求花了自己一段时间配置。 由于是低年级的学生，并且人数也比较多，所以复杂的授权认证不合适，最好学生什么都不需要做就可以 pull 代码。 git &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -73,6 +72,85 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/03/03/all-pull-few-push/">All Pull Few Push for Git Repo</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-03T20:40:00+08:00" pubdate data-updated="true">Mar 3<span>rd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>这学期我担了一门课的助教。课上需要为学生建立一个 git 仓库。该仓库需要所有学生都有 pull 权限，但是又要赋予几个 TA push 权限。这个要求花了自己一段时间配置。</p>
+
+<p>由于是低年级的学生，并且人数也比较多，所以复杂的授权认证不合适，最好学生什么都不需要做就可以 pull 代码。</p>
+
+<p>git 支持许多协议，例如 http/https，git， ssh。http 可以很方便的让所有学生都能 pull 代码，但是却不能允许 TA push 代码 （或者我不知道如何配置），而 ssh 认证有很好的授权认证，但是它却比较烦。于是我选择了 git 协议。（以上分析来自 Pro Git）</p>
+
+<p>首先，我用 gitolite 去管理所有 git 仓库。gitolite 操作十分地方便。具体参见 gitolite 官网。
+需要注意的是，在使用 gitolite 配置仓库权限的时候可以这样写：</p>
+
+<pre><code>repo    yourRepository
+    RW+     =   TA
+    R       =   daemon
+</code></pre>
+
+<p>这样 gitolite 会自动在仓库 yourRepository 中创建一个名字为 daemon-export-ok 的空文件，该文件会让 git daemon 把该仓库 share 出去。
+然后再启动 git daemon。</p>
+
+<pre><code>git daemon --reuseaddr --base-path=/example-repositories-dir-path /example-repositories-dir-path
+</code></pre>
+
+<p>之后就可以通过下面命令正常 clone 代码了。</p>
+
+<pre><code>git clone git://your-server-name/yourRepository
+</code></pre>
+
+<p>说明：</p>
+
+<ul>
+<li>&#8211;reuseaddr 参数使得服务无须等到旧的连接尝试过期以后再重启，&#8211;base-path 参数使得 clone 项目的时候不用给出完整的路径，而最后面的路径告诉 Git  Daemon 进程需要导出仓库的位置。</li>
+<li>确保启动 git daemon 的用户有读取仓库文件的权限。</li>
+<li>可以在系统启动脚本中启动 daemon。</li>
+</ul>
+
+
+<p>参考文档：</p>
+
+<ul>
+<li>Pro Git</li>
+<li><a href="http://gitolite.com/gitolite/qi.html">gitolite</a></li>
+<li><a href="http://gitolite.com/gitolite/qi.html">http://gitolite.com/gitolite/qi.html</a></li>
+<li><a href="http://granjow.net/git-read-access.html">http://granjow.net/git-read-access.html</a></li>
+<li><a href="http://norbu09.org/2009/08/02/git-via-HTTP-(startup-automation-3).html">http://norbu09.org/2009/08/02/git-via-HTTP-(startup-automation-3).html</a></li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/03/03/hello-world/">Hello World</a></h1>
     
     
@@ -115,6 +193,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/03/03/all-pull-few-push/">all pull few push for git repo</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/03/03/hello-world/">Hello world</a>

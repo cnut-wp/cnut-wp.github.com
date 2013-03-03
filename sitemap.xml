@@ -2,18 +2,22 @@
 <urlset xmlns='http://www.sitemaps.org/schemas/sitemap/0.9'>
     <url>
         <loc>http://cnut-wp.github.com/blog/2013/03/03/hello-world/</loc>
-        <lastmod>2013-03-03T19:08:02+08:00</lastmod>
+        <lastmod>2013-03-03T23:10:02+08:00</lastmod>
+    </url>
+    <url>
+        <loc>http://cnut-wp.github.com/blog/2013/03/03/all-pull-few-push/</loc>
+        <lastmod>2013-03-03T23:10:02+08:00</lastmod>
     </url>
     <url>
         <loc>http://cnut-wp.github.com/blog/archives/</loc>
-        <lastmod>2013-03-03T19:08:02+08:00</lastmod>
+        <lastmod>2013-03-03T23:10:02+08:00</lastmod>
     </url>
     <url>
         <loc>http://cnut-wp.github.com/</loc>
-        <lastmod>2013-03-03T19:08:02+08:00</lastmod>
+        <lastmod>2013-03-03T23:10:02+08:00</lastmod>
     </url>
     <url>
         <loc>http://cnut-wp.github.com/robots.txt</loc>
-        <lastmod>2013-03-03T17:12:52+08:00</lastmod>
+        <lastmod>2013-03-03T23:10:03+08:00</lastmod>
     </url>
 </urlset>
