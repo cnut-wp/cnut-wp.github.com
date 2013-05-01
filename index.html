@@ -9,7 +9,8 @@
   <meta name="author" content="Peng Wang">
 
   
-  <meta name="description" content="这学期我担了一门课的助教。课上需要为学生建立一个 git 仓库。该仓库需要所有学生都有 pull 权限，但是又要赋予几个 TA push 权限。这个要求花了自己一段时间配置。 由于是低年级的学生，并且人数也比较多，所以复杂的授权认证不合适，最好学生什么都不需要做就可以 pull 代码。 git &hellip;">
+  <meta name="description" content="最近，看了一些关于 Lock-Free Queue 的 Paper，感觉挺有意思的。
+为什么产生 Lock-Free 的数据结构？原因是这样的，在 Concurrent Programming 中，由于下面的 OS是抢占调度的，完全有可能出现这样一种情况：持有锁的线程被调度走， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -66,6 +67,174 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/05/01/lock-free-queue/">Lock Free Queue</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-05-01T15:08:00+08:00" pubdate data-updated="true">May 1<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近，看了一些关于 Lock-Free Queue 的 Paper，感觉挺有意思的。
+为什么产生 Lock-Free 的数据结构？原因是这样的，在 Concurrent Programming 中，由于下面的 OS是抢占调度的，完全有可能出现这样一种情况：持有锁的线程被调度走，而等待锁的线程却被调度上 CPU,这样带来的一个后果就是：正在运行的线程由于没有锁而无法推进，它必须得等到持有锁的线程重新被调度上CPU并释放释放锁后才能继续运行。
+为了解决这个问题，许多研究工作者就发明了 non-blocking 的数据结构（又叫： Lock-Free Data Structure）。</p>
+
+<pre><code>An implementation of a data structure is nonblocking (also known as lock-free) if it
+guarantees that at least one process of those trying to update the data structure
+concurrently will succeed in completing its operation within a bounded amount of
+time, assuming that at least one process is active, regardless of the state of other
+processes.
+</code></pre>
+
+<p>Lock-Free 的数据结构保证一个线程总能向前推进，避免了由于持有锁的线程被调度走而带来的开销。 Lock-Free 的数据结构一般需要用到特殊的指令,例如 xadd, Campare-And-Swap。这些指令保证原子地完成相应操作。</p>
+
+<p>回到正文，我们现在来看一下如何实现 Lock-Free 的 Queue.
+Queue需要保证先进先出_FIFO_的顺序，因此相比于List要简单一下。
+我们要实现的Queue的两个例子。<img src="/images/queue-example.jpg" alt="queues" />
+其中，对于空的Queue，head和tail均指向一个dummy node；对于有三个元素的Queue，head指向一个dummy node，而该dummy node指向Queue的第一个node，tail指向最后一个node。
+enqueue过程稍微复杂一点，如图：<img src="/images/enqueue.jpg" alt="enqueue" />
+这样的enqueue实现保证了数据链表始终是连续的，即使该enqueue被调度走，其他enqueue还是可以把tail移动到正确的位置正确。
+dequeue则比较简单，只需要将相应的head向前一下就可以了。</p>
+
+<p>具体代码：</p>
+
+<pre><code>struct Node {
+    int value;
+    struct Node* next;
+};
+
+
+static inline
+bool CAS(Node** mem, Node* old, Node* newVal)
+{
+    unsigned long r;
+    __asm__ __volatile__("lock cmpxchgq %2,%1"
+            : "=a" (r), "+m" (*mem)
+            : "r" (newVal), "0" (old)
+            : "memory");
+
+    return r == (unsigned long)old ? 1 : 0;
+}
+
+
+
+Node * head=new Node;
+Node * tail=head;
+
+void enqueue(int x){
+    Node* q = new Node;
+    q-&gt;value = x;
+    q-&gt;next = NULL;
+    bool succ = false;
+    Node *p;
+    Node *next;
+    do {
+        p = tail;
+        next = tail-&gt;next;
+        if (p == tail) {
+            if (next == NULL)
+            {
+                succ = CAS(&amp;(p-&gt;next), NULL, q);
+            } else {
+                CAS(&amp;tail,p,p-&gt;next);
+            }
+        }
+    } while (!succ);
+    CAS(&amp;tail,p,q);
+    return;  
+}
+
+int dequeue(){
+    Node *p; 
+    Node *next;
+    bool succ; 
+    do{
+        p = head;
+        next = p-&gt;next;
+        if (next == NULL){
+            return -1;
+        }
+        succ = CAS(&amp;head, p, next);
+        if (succ == true) {
+            if (p == tail) {
+                CAS(&amp;tail, tail, next);
+            }
+        } 
+    }while(!succ);
+    return p-&gt;next-&gt;value; 
+}
+</code></pre>
+
+<p>该代码是在64位的Intel处理器上运行。</p>
+
+<p>可以看出上面代码有一个很大的漏洞，就是<em>没有释放内存</em>。原因是这样的，因为Lock-Free的Queue要保证无论一个enqueue/dequeue的线程执行到哪里，都可以被调度走而不会导致其他线程阻塞。所以就会出现一种情况:一个dequeue的线程执行到一半的时候，被调度走；这时候其他dequeue的线程把前面线程要dequeue的node 移除了并将内存归还；这时如果前面的线程被调度上CPU，再去用它的之前读到的指针去访问相应内存，就会有问题。所以上面实现中没有释放内存。一个解决办法就是用提供GC的语言实现上面算法。</p>
+
+<p>对于使用Compare-And-Swap原语的Lock-Free数据结构，都要考虑一个_ABA_问题。该个问题是这样的，Compare-And-Swap比较一个内存地址的值是不是还是用户提供的oldValue，如果是，就用用户提供的新的newVal去对该内存地址进行赋值。但是如果该内存地址的值是oldValue，该内存就一定是原来用户看到的状态吗？这是不一定的。有可能出现这种情况，该内存(head/tail)地址的值经过一系列dequeue/enqueue，值有回到了原来的oldValue，但是该oldValue和用户原来看到的oldValue有不同的含义（其他域可能不一样了）。这样就会造成一些问题。一个解决法案就是在扩展oldValue与newValue，使其包含一个递增的计数器。该计数器发生一次dequeue或者一次enqueue值就自增，这样就避免了前面的问题。不过这需要让Compare-And-Swap的位长变大。</p>
+
+<p>性能测试：</p>
+
+<table rules="all" cellpadding="15" border="1">
+    <tr>
+        <td></td>
+        <td>enqueue</td>
+        <td> en/de </td>
+        <td>dequeue</td>
+    </tr>
+    <tr>
+        <td>lock-free</td>
+        <td>113106</td>
+        <td>57256</td>
+        <td>39831</td>
+    </tr>
+    <tr>
+        <td>lock</td>
+        <td>144583</td>
+        <td>130820</td>
+        <td>135425</td>
+    </tr>
+    <tr>
+        <td></td>
+    </tr>
+</table>
+
+
+<p>该测试是这样的，总共有10个线程，每个线程执行10000000操作（enqueue/dequeue）。enqueue列表示10个线程同时去enqueue，en/de表示各有5个线程去做enqueue和dequeue，而dequeue列表示10个线程同时去dequeue。物理机有16个core（Intel(R) Xeon(R) CPU E7310  @ 1.60GHz）。单位毫秒。</p>
+
+<p>参考文档：</p>
+
+<ul>
+<li>Nonblocking Algorithms and Preemption-Safe Locking on Multiprogrammed Shared Memory Multiprocessors</li>
+<li>Implememting Lock-Free Queues</li>
+<li>Formal Verification of a Practical Lock-Free Queue Algorithm</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -193,6 +362,10 @@
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/05/01/lock-free-queue/">lock free queue</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/03/03/all-pull-few-push/">all pull few push for git repo</a>
