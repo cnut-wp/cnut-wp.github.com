@@ -9,8 +9,7 @@
   <meta name="author" content="Peng Wang">
 
   
-  <meta name="description" content="最近，看了一些关于 Lock-Free Queue 的 Paper，感觉挺有意思的。
-为什么产生 Lock-Free 的数据结构？原因是这样的，在 Concurrent Programming 中，由于下面的 OS是抢占调度的，完全有可能出现这样一种情况：持有锁的线程被调度走， &hellip;">
+  <meta name="description" content="最近在看《浪潮之巅》，感觉这是一本很不错的书，读这本书的时候让自己的计算机行业有了更多的理解。在这里推荐一下。 近一百多年来，总有一些公司很幸运地、有意识或无意识地站在技术革命的浪尖之上。在这十几年间，它们代表着科技的浪潮，直到下一波浪潮的来临。 对于一个弄潮的年轻人来讲，最幸运的， &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -73,6 +72,65 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/07/19/On-Top-of-Tides/">On Top of Tides</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-07-19T18:00:00+08:00" pubdate data-updated="true">Jul 19<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>最近在看《浪潮之巅》，感觉这是一本很不错的书，读这本书的时候让自己的计算机行业有了更多的理解。在这里推荐一下。</p>
+
+<blockquote><p>近一百多年来，总有一些公司很幸运地、有意识或无意识地站在技术革命的浪尖之上。在这十几年间，它们代表着科技的浪潮，直到下一波浪潮的来临。</p>
+
+<p>对于一个弄潮的年轻人来讲，最幸运的，莫过于赶上一波大潮</p></blockquote>
+
+<p>上面是书开头的一段话。《浪潮之巅》书中介绍了IT行业各个时期的弄潮儿，也分析了IT行业的各种特点。出于了解历史或者让自己对于IT行业更加了解，这本书都值得一读。</p>
+
+<p>计算机工业的生态链三定律：</p>
+
+<ul>
+<li>摩尔定律:当价格不变时，集成电路上可容纳的晶体管数目，约每隔18个月便会增加一倍，性能也将提升一倍。</li>
+<li>安迪-比尔定律: What Andy gives, Bill take away。</li>
+<li>反摩尔定律：一个IT公司如果今天和18个月前卖掉同样多的、同样的产品，它的营业额就要降一半。</li>
+</ul>
+
+
+<p>摩尔定律，几乎每个IT行业人员都知道。有一种说法是这样的：IT行业为什么能以这么快的速度发展，并且持续这么长时间？因为IT行业的从事者能够不断用新的软硬件去设计新的软硬件，从而能不断保持以指数的速度发展。</p>
+
+<p>安迪-比尔定律，这是我们不断更新我们 PC 的原因。Andy 是 Intel 的老总，Bill 则是 Microsoft 的老总。Microsoft 不断推出新的更强大的系统，但是这些系统只能在更新的硬件上才能跑的起来，为了使用更友好更流畅的系统，没有办法我们只能去更新系统。这也决定了 Microsoft 在 PC 时代位于计算机工业的上游，而生产硬件的公司则位于整个生态的中下游。一个例子就是：由于 Vista 的延期推出，各大 PC 硬件厂商相应的销售受到了很大的影响。</p>
+
+<p>反摩尔定律则对应 IT 公司是致命的。SUN 曾经是打败包括 IBM 在内所有工作站和小型机公司的伟大公司，市值一度超过2000亿美元，公司中也不乏能人。但是它只想通过卖它的硬件赚钱，受反摩尔定律的影响，自己又没有找到新的盈利方式（它毕竟与那么多牛逼的技术，例如风靡全球但是不赚钱的 JAVA），最终被 ORACLE 以74亿美元收购。反摩尔定律要求 IT 公司不断地创新，否则很可能马上走向衰败。反摩尔定律，现在看主要是影响那些以硬件为主的公司，而以软件服务为主的公司，影响着没有那么大，例如现在的 IBM。</p>
+
+<p>书中把许多公司的命运归结于公司的基因，Apple 的基因是创新，所以它能在许多年低谷后重新引领时代，而 SUN 虽然它也有许多能人，但是由于它没有把技术优势转化为利润的基因，而最终没落。</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/05/01/lock-free-queue/">Lock Free Queue</a></h1>
     
     
@@ -110,7 +168,7 @@ processes.
 <p>Lock-Free 的数据结构保证一个线程总能向前推进，避免了由于持有锁的线程被调度走而带来的开销。 Lock-Free 的数据结构一般需要用到特殊的指令,例如 xadd, Campare-And-Swap。这些指令保证原子地完成相应操作。</p>
 
 <p>回到正文，我们现在来看一下如何实现 Lock-Free 的 Queue.
-Queue需要保证先进先出_FIFO_的顺序，因此相比于List要简单一下。
+Queue需要保证先进先出<em>FIFO</em>的顺序，因此相比于List要简单一下。
 我们要实现的Queue的两个例子。<img src="/images/queue-example.jpg" alt="queues" />
 其中，对于空的Queue，head和tail均指向一个dummy node；对于有三个元素的Queue，head指向一个dummy node，而该dummy node指向Queue的第一个node，tail指向最后一个node。
 enqueue过程稍微复杂一点，如图：<img src="/images/enqueue.jpg" alt="enqueue" />
@@ -362,6 +420,10 @@ int dequeue(){
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2013/07/19/On-Top-of-Tides/">On Top of Tides</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2013/05/01/lock-free-queue/">lock free queue</a>

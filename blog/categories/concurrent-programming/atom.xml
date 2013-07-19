@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Concurrent Programming | Tech Changes The World]]></title>
   <link href="http://cnut-wp.github.com/blog/categories/concurrent-programming/atom.xml" rel="self"/>
   <link href="http://cnut-wp.github.com/"/>
-  <updated>2013-05-01T21:05:24+08:00</updated>
+  <updated>2013-07-19T19:09:54+08:00</updated>
   <id>http://cnut-wp.github.com/</id>
   <author>
     <name><![CDATA[Peng Wang]]></name>
@@ -32,7 +32,7 @@ processes.
 <p>Lock-Free 的数据结构保证一个线程总能向前推进，避免了由于持有锁的线程被调度走而带来的开销。 Lock-Free 的数据结构一般需要用到特殊的指令,例如 xadd, Campare-And-Swap。这些指令保证原子地完成相应操作。</p>
 
 <p>回到正文，我们现在来看一下如何实现 Lock-Free 的 Queue.
-Queue需要保证先进先出_FIFO_的顺序，因此相比于List要简单一下。
+Queue需要保证先进先出<em>FIFO</em>的顺序，因此相比于List要简单一下。
 我们要实现的Queue的两个例子。<img src="/images/queue-example.jpg" alt="queues" />
 其中，对于空的Queue，head和tail均指向一个dummy node；对于有三个元素的Queue，head指向一个dummy node，而该dummy node指向Queue的第一个node，tail指向最后一个node。
 enqueue过程稍微复杂一点，如图：<img src="/images/enqueue.jpg" alt="enqueue" />
