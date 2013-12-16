@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Concurrent Programming | This is not Windows Phine, but it does Write Protect]]></title>
+  <title><![CDATA[Category: Concurrent Programming | A Write Protect Blog]]></title>
   <link href="http://cnut-wp.github.com/blog/categories/concurrent-programming/atom.xml" rel="self"/>
   <link href="http://cnut-wp.github.com/"/>
-  <updated>2013-12-16T21:47:49+08:00</updated>
+  <updated>2013-12-16T22:03:08+08:00</updated>
   <id>http://cnut-wp.github.com/</id>
   <author>
     <name><![CDATA[Peng Wang]]></name>
