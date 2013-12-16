@@ -9,13 +9,13 @@ categories:
 
 这两方面的知识都比较多，现在本人还处于学习阶段，望指教。
 
-今天我们组学习 SOSP13' Paper Everything You Always Wanted to Know about Synchronization but Were Afraid to Ask,
+最近我们组学习 SOSP13' Paper Everything You Always Wanted to Know about Synchronization but Were Afraid to Ask,
 这篇 paper 主要讲 Hardware 对 Scalability 的影响 (文章涉及四个厂商的硬件，很好地总结了它们的特点，值得学习), 同时涉及到一些 Lock 的 Scalability 分析。
 
 首先说一下硬件情况。
 ![enqueue](/images/hardware-perf.png)
 
-本文主要讲一下集中锁 Lock 以及它们的优化原因。
+本文主要讲一下几种锁 Lock 以及它们的优化原因。
 
 基于 Test_And_Set 最简单的 Spin Lock ：
 	type lock = (unlocked, locked)
@@ -39,7 +39,7 @@ Back-off  是为了干什么？
 最理想的情况就是，知道每个人要从哪里到哪里，然后安排好他们的出门时间，让整个公路通畅运行没有堵的情况出现，这样才能保证公路时刻都在以最大的效率运输车辆。
 前面的 back-off 想做的就是这个。
 
-具体到运行在某个硬件的锁是这样的：在多核环境下，Lock 不管怎么实现，最终对归结为对某个内存的操作，由于多个核都可以看到这个内存，需要通过 Cache Coherence 协议保证对该变量访问和操作的一致性。
+具体到运行在某个硬件上的锁是这样的：在多核环境下，Lock 不管怎么实现，最终对归结为对某个内存的操作，由于多个核都可以看到这个内存，需要通过 Cache Coherence 协议保证对该变量访问和操作的一致性。
 Cache Coherence 协议简单来说就是不同的核(可以这样理解，真正的硬件可能是 memory node controler)通过一系列的消息来保证不同核看到的数据 (cache line ) 是一致的。
 有不同的 Cache Coherence 协议，一般我们都会在教科书上学习到基于四种状态 Modified Exclusive Shared Invalid (MESI) 的 Cache Coherence 协议。
 
@@ -119,7 +119,7 @@ Ticket Spin Lock 很好地解决了饿死的问题。(每个人先去领个号�
 			repeat while I->next = nil          // spin
 		I->next->locked := false
 
-在上面实现的 MCS Lock 中，各个线程只会 spin 在自己的 local 变量 I ：qnode 上。释放锁的人理想情况下只会给一个人发 invalidate 消息。
+在上面实现的 MCS Lock 中，各个线程只会 spin 在自己的 local 变量  I:qnode  上。释放锁的人理想情况下只会给一个人发 invalidate 消息。
 		
 如果考虑到 NUNA 的特性，还可以继续提高 Lock 的 throughput. (同一个 NUMA Node 访问会比跨 NUMA Node 的访问快， 于是我们可以让锁具有偏向性，让位于一个 NUMA Node 上的 Core 更容易拿到锁)
 
@@ -134,8 +134,8 @@ Ticket Spin Lock 很好地解决了饿死的问题。(每个人先去领个号�
 
 参考文档：
 
-*  Nonblocking Algorithms and Preemption-Safe Locking on Multiprogrammed Shared Memory Multiprocessors
-*  Everything You Always Wanted to Know about Synchronization but Were Afraid to Ask
+*  Everything You Always Wanted to Know about Synchronization but Were Afraid to Ask 
+*  Non-scalable locks are dangerous
 *  [http://www.cs.rochester.edu/research/synchronization/pseudocode/ss.html](http://www.cs.rochester.edu/research/synchronization/pseudocode/ss.html) 
 *  [Spinlock and Contention](http://www.cs.tau.ac.il/~afek/Spin Locks and Contention.ppt) [Local Copy](/material/Spin Locks and Contention.ppt)
 
